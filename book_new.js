@@ -33,6 +33,16 @@ while (true) {
     }
 }
 
+console.log("\nEnter dates automatically or manually Search")
+let desiredDates = prompt("Select automatically or manually search , please enter (1 -> Automatically 2-> Manually): ");
+while (true) {
+    if(desiredDates === '1' || desiredDates === '2') {
+        break;
+    } else {
+        desiredDates = prompt("Invalid input, please enter your desired dates (1 -> Automatically 2-> Manually)");
+    }
+}
+
 console.log("\n")
 let skypassOrVisa = prompt("Skypass or Visa (skypass or visa): ");
 while (true) {
@@ -169,14 +179,17 @@ while (true) {
     console.log("After that you do not need to do anything, please monitor the script in case it gets stuck");
     console.log("If processing request popup appears, wait till it disappears and manually refresh")
 
-    await page.click('button[class="quickbookings__datepicker"]');
-    console.log("date Picker clicked");
-    
-    for(let i=1; i<=6; i++) {
-        await page.click('button[class="datepicker__next ng-tns-c42-2"]');
-        console.log("selected date: ", i);
+    if (desiredDates === '1') { // Automatic Search
+        await page.click('button[class="quickbookings__datepicker"]');
+        console.log("date Picker clicked");
+        
+        for(let i=1; i<=6; i++) {
+            await page.click('button[class="datepicker__next ng-tns-c42-2"]');
+            console.log("selected date: ", i);
+        }
+        console.log("out of the loop");
+     
     }
-    console.log("out of the loop");
 
     // await page.waitForSelector('#month202508 table tbody');
     // for(let )
@@ -270,11 +283,16 @@ while (true) {
 
     await page.click('#submit-passenger-ADT-0');
 
-    await page.waitForSelector('label[for="chk-save-contact-info"]');
+    await page.click('button[class="option -ghost"]');
 
-    await page.click('#submit-contact')
-    console.log("Selecting Timezone")
+    //await page.waitForSelector('label[for="chk-save-contact-info"]');
+    //await page.click('#submit-contact')
+    
+    console.log("Selecting Timezone");
+    await page.click('div[class="fieldset ng-pristine ng-touched ng-invalid"]');
+    console.log("clicked");
     await page.waitForSelector('select[class="ng-pristine ng-valid ng-touched"]');
+    console.log("wait for selector");
     const options = await page.$$('select > option[value="4: ATL"]');
     if (options.length > 0) {
         const selectElement = await options[0].evaluateHandle((option) => option.parentElement);
