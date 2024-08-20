@@ -1,4 +1,4 @@
-const {chromium} = require("playwright")
+const {chromium} = require("playwright");  // chromium Or 'firefox' or 'webkit'.
 const prompt = require('prompt-sync')();
 
 
@@ -189,6 +189,15 @@ while (true) {
         }
         console.log("out of the loop");
      
+        await page.waitForSelector('.datepicker__td.-available');
+        await page.evaluate(() => {
+            const allAvailableElements = document.querySelectorAll('tr .datepicker__td.-available');
+            const lastAvailableElement = allAvailableElements[allAvailableElements.length - 1];
+            if (lastAvailableElement) {
+                lastAvailableElement.click();
+            }
+        });
+        await page.click('button[class="booking-widget__find"]');
     }
 
     // await page.waitForSelector('#month202508 table tbody');
@@ -271,7 +280,7 @@ while (true) {
             await page.click('.payment-widget__confirm');
             break;
         } else {
-            console.log("Sold out, refreshing.")
+            console.log("Sold out, refreshing Trying again.")
             await page.reload();
             await page.waitForLoadState('load');
         }
@@ -303,7 +312,7 @@ while (true) {
     // confirm -ghost ng-star-inserted
 
     await page.click('button.confirm[type="submit"]');
-    await page.click('label[for="chk-save-contact-info"]');
+    // await page.click('label[for="chk-save-contact-info"]');
     await page.click('#submit-contact');
 
     await page.waitForSelector('button[id="btn-resv-agree-1"]');
@@ -314,6 +323,27 @@ while (true) {
         await page.click('button[id="btnScrollDown"]');
         console.log("scroll down: ", i);
     }
+
+    // Wait for at least one element to appear
+    // await page.waitForSelector('button.confirm.-ghost.ng-star-inserted');
+
+    // Count how many elements match the selector
+    const buttonCount = await page.evaluate(() => {
+        return document.querySelectorAll('button.confirm.-ghost.ng-star-inserted').length;
+    });
+
+    console.log('buttonCount: ' + buttonCount);
+    // Log the result
+    if (buttonCount > 0) {
+        console.log('Button exists on the page.');
+
+        for(let i=1; i<=buttonCount; i++) {
+            await page.waitForSelector('button[id="btnScrollDown"]');
+            await page.click('button[id="btnScrollDown"]');
+            console.log("scroll down: ", i);
+        }
+    }
+
     console.log('click confirm');
     await page.waitForSelector('button[id="btnConfirm"]');
     await page.click('button[id="btnConfirm"]');
@@ -369,99 +399,172 @@ while (true) {
         }
 
         if (compareStringsIgnoreCase(userId, "biz4us")) { // Yoon then use miles of Nari, Joseph and Baek
+            console.log("I am here for biz4us");
+            
+            const desiredOrder = ['YOON NARI', 'YOON JOSEPH', 'BAEK KYOUNGSUN'];
+            // await processMiles(userId, desiredOrder);
 
-            await page.click('button[id="select-button1"]');
-            await page.click('button[aria-label="Use all - YOON NARI mileage"]');
+            const names = [];
+            let i= 0;
 
-            let moreRequiredMiles = await getMoreRequiredMiles();
+            const elements = await page.locator('button[class="payment-miles__clickable ng-star-inserted"] span._hidden').allTextContents();
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button2"]');
-                await page.click('button[aria-label="Use all - YOON JOSEPH mileage"]');
-
-                moreRequiredMiles = await getMoreRequiredMiles();
+            for (let fullText of elements) {
+                const name = fullText.trim().replace('Select', '').trim();
+                names.push(name);           
             }
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button0"]');
-                await page.click('button[aria-label="Use all - BAEK KYOUNGSUN mileage"]');
+            console.log(names);              
+                        
+            for (const name of desiredOrder) {
 
-                moreRequiredMiles = await getMoreRequiredMiles();
-            }
-        }
+                if (names.includes(name)) {
+                    console.log(`${name} exists in the names array.`);
 
-        if (compareStringsIgnoreCase(userId, "YOONLILY7")) { // kyoungsun baek then use miles of Nari, Joseph and Yoon
-            console.log("I am here");
-            await page.click('button[id="select-button1"]');
-            await page.click('button[aria-label="Use all - YOON NARI mileage"]');
+                    // Find the corresponding button by matching the name
+                    const buttonSelector = `button[class="payment-miles__clickable ng-star-inserted"] span._hidden:has-text("${name} Select")`;
+                    const nthElement = page.locator(buttonSelector);
 
-            let moreRequiredMiles = await getMoreRequiredMiles();
-            console.log("miles needed: " + moreRequiredMiles);
+                    // Click the button associated with the name
+                    await nthElement.click();
+                    console.log("Clicked on name: " + name);
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button1"]');
-                await page.click('button[aria-label="Use all - YOON JOSEPH mileage"]');
-        
-                moreRequiredMiles = await getMoreRequiredMiles();
-            }
+                    // Construct the aria-label for the "Use all" button and click it
+                    const test = `Use all - ${name} mileage`;
+                    await page.click(`button[aria-label="${test}"]`);
+                    console.log("Clicked Use all for: " + name);
+                } else {
+                    console.log(`${name} does not exist in the names array.`);
+                }
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button0"]');
-                await page.click('button[aria-label="Use all - YOON SANGCHEOL mileage"]');
-        
-                moreRequiredMiles = await getMoreRequiredMiles();
             }
             
         }
 
-        if (compareStringsIgnoreCase(userId, "YOONNARI7")) { // Nari Yoon then use miles of Joseph, Yoon and Baek
-            await page.click('button[id="select-button2"]');
-            await page.click('button[aria-label="Use all - YOON JOSEPH mileage"]');
+        if (compareStringsIgnoreCase(userId, "yoonlily7")) { // kyoungsun baek then use miles of Nari, Joseph and Yoon
+            console.log("I am here for yoonlily7");
+            const desiredOrder = ['YOON NARI', 'YOON JOSEPH', 'YOON SANGCHEOL'];
 
-            let moreRequiredMiles = await getMoreRequiredMiles();
+            const names = [];
+            let i= 0;
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button0"]');
-                await page.click('button[aria-label="Use all - YOON SANGCHEOL mileage"]');
+            const elements = await page.locator('button[class="payment-miles__clickable ng-star-inserted"] span._hidden').allTextContents();
 
-                moreRequiredMiles = await getMoreRequiredMiles();
+            for (let fullText of elements) {
+                const name = fullText.trim().replace('Select', '').trim();
+                names.push(name);           
             }
 
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button1"]');
-                await page.click('button[aria-label="Use all - BAEK KYOUNGSUN mileage"]');
+            console.log(names);        
+                        
+            for (const name of desiredOrder) {
 
-                moreRequiredMiles = await getMoreRequiredMiles();
+                if (names.includes(name)) {
+                    console.log(`${name} exists in the names array.`);
+
+                    // Find the corresponding button by matching the name
+                    const buttonSelector = `button[class="payment-miles__clickable ng-star-inserted"] span._hidden:has-text("${name} Select")`;
+                    const nthElement = page.locator(buttonSelector);
+
+                    // Click the button associated with the name
+                    await nthElement.click();
+                    console.log("Clicked on name: " + name);
+
+                    // Construct the aria-label for the "Use all" button and click it
+                    const test = `Use all - ${name} mileage`;
+                    await page.click(`button[aria-label="${test}"]`);
+                    console.log("Clicked Use all for: " + name);
+                } else {
+                    console.log(`${name} does not exist in the names array.`);
+                }
+
+            }                   
+            
+        }
+
+        if (compareStringsIgnoreCase(userId, "yoonnari7")) { // Nari Yoon then use miles of Joseph, Yoon and Baek
+
+            console.log("I am here for yoonnari7");
+            const desiredOrder = ['YOON JOSEPH', 'YOON SANGCHEOL', 'BAEK KYOUNGSUN'];
+
+            const names = [];
+            let i= 0;
+
+            const elements = await page.locator('button[class="payment-miles__clickable ng-star-inserted"] span._hidden').allTextContents();
+
+            for (let fullText of elements) {
+                const name = fullText.trim().replace('Select', '').trim();
+                names.push(name);           
+            }
+
+            console.log(names);        
+                        
+            for (const name of desiredOrder) {
+
+                if (names.includes(name)) {
+                    console.log(`${name} exists in the names array.`);
+
+                    // Find the corresponding button by matching the name
+                    const buttonSelector = `button[class="payment-miles__clickable ng-star-inserted"] span._hidden:has-text("${name} Select")`;
+                    const nthElement = page.locator(buttonSelector);
+
+                    // Click the button associated with the name
+                    await nthElement.click();
+                    console.log("Clicked on name: " + name);
+
+                    // Construct the aria-label for the "Use all" button and click it
+                    const test = `Use all - ${name} mileage`;
+                    await page.click(`button[aria-label="${test}"]`);
+                    console.log("Clicked Use all for: " + name);
+                } else {
+                    console.log(`${name} does not exist in the names array.`);
+                }
+
+            } 
+        }
+
+        if (compareStringsIgnoreCase(userId, "yoonjose7")) { // Joseph then use miles of Nari, Yoon and Baek
+
+            console.log("I am here for yoonjose7");
+            const desiredOrder = ['YOON NARI', , 'YOON SANGCHEOL', 'BAEK KYOUNGSUN'];
+
+            const names = [];
+            let i= 0;
+
+            const elements = await page.locator('button[class="payment-miles__clickable ng-star-inserted"] span._hidden').allTextContents();
+
+            for (let fullText of elements) {
+                const name = fullText.trim().replace('Select', '').trim();
+                names.push(name);           
+            }
+
+            console.log(names);        
+                        
+            for (const name of desiredOrder) {
+
+                if (names.includes(name)) {
+                    console.log(`${name} exists in the names array.`);
+
+                    // Find the corresponding button by matching the name
+                    const buttonSelector = `button[class="payment-miles__clickable ng-star-inserted"] span._hidden:has-text("${name} Select")`;
+                    const nthElement = page.locator(buttonSelector);
+
+                    // Click the button associated with the name
+                    await nthElement.click();
+                    console.log("Clicked on name: " + name);
+
+                    // Construct the aria-label for the "Use all" button and click it
+                    const test = `Use all - ${name} mileage`;
+                    await page.click(`button[aria-label="${test}"]`);
+                    console.log("Clicked Use all for: " + name);
+                } else {
+                    console.log(`${name} does not exist in the names array.`);
+                }
+
             }
         }
 
-        if (compareStringsIgnoreCase(userId, "YOONJOSE7")) { // Joseph then use miles of Nari, Yoon and Baek
-            await page.click('button[id="select-button2"]');
-            await page.click('button[aria-label="Use all - YOON JOSEPH mileage"]');
 
-            let moreRequiredMiles = await getMoreRequiredMiles();
-
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button0"]');
-                await page.click('button[aria-label="Use all - YOON SANGCHEOL mileage"]');
-
-                moreRequiredMiles = await getMoreRequiredMiles();
-            }
-
-            if (moreRequiredMiles > 0) {
-                await page.click('button[id="select-button1"]');
-                await page.click('button[aria-label="Use all - BAEK KYOUNGSUN mileage"]');
-
-                moreRequiredMiles = await getMoreRequiredMiles();
-            }
-        }
-
-
-
-        // await page.click('button[id="select-button1"]');
-        // await page.click('button[aria-label="Use all - YOON NARI mileage"]');
-        // let moreRequiredMiles = await page.locator('span[class="payment-summary__value"]').first().textContent();
-        // console.log("moreRequiredMiles: " + moreRequiredMiles);
     }
 
 
@@ -583,4 +686,39 @@ function isValidCreditCardFormat(cc) {
 
 function compareStringsIgnoreCase(str1, str2) {
     return str1.toLowerCase() === str2.toLowerCase();
+}
+
+async function processMiles(userId, desiredOrder) {
+    console.log(`Processing miles for ${userId}`);
+
+    const names = [];
+    const elements = await page.locator('button[class="payment-miles__clickable ng-star-inserted"] span._hidden').allTextContents();
+
+    for (let fullText of elements) {
+        const name = fullText.trim().replace('Select', '').trim();
+        names.push(name);
+    }
+
+    console.log(`Names found: ${names}`);
+
+    for (const name of desiredOrder) {
+        if (names.includes(name)) {
+            console.log(`${name} exists in the names array.`);
+
+            // Find the corresponding button by matching the name
+            const buttonSelector = `button[class="payment-miles__clickable ng-star-inserted"] span._hidden:has-text("${name} Select")`;
+            const nthElement = page.locator(buttonSelector);
+
+            // Click the button associated with the name
+            await nthElement.click();
+            console.log(`Clicked on name: ${name}`);
+
+            // Construct the aria-label for the "Use all" button and click it
+            const ariaLabel = `Use all - ${name} mileage`;
+            await page.click(`button[aria-label="${ariaLabel}"]`);
+            console.log(`Clicked Use all for: ${name}`);
+        } else {
+            console.log(`${name} does not exist in the names array.`);
+        }
+    }
 }
