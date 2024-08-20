@@ -1,0 +1,82 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs
+logs/
+*.log
+logs/**/*.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+dist/
+build/
+out/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Coverage directory used by testing tools
+coverage/
+*.lcov
+
+# Compiled source files
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Python specific files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Java specific files
+*.jar
+*.war
+*.ear
+
+# Rust specific files
+/target/
+
+# Ruby specific files
+*.gem
+vendor/
+.rbenv
+.sass-cache/
+.ruby-version
+.ruby-gemset
+
+# Go specific files
+*.out
+/vendor/
+
+# JavaScript/TypeScript
+*.tsbuildinfo
+*.d.ts
+*.d.ts.map
+
+# Test result files
+/coverage/
+/test-results/
+
+# other files
+book.js
