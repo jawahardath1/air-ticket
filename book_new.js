@@ -1,4 +1,4 @@
-const {chromium} = require("playwright");  // chromium Or 'firefox' or 'webkit'.
+const {firefox} = require("playwright");  // chromium Or 'firefox' or 'webkit'.
 const prompt = require('prompt-sync')();
 
 
@@ -118,7 +118,7 @@ while (true) {
 
 
 ;(async () => {
-    const browser = await chromium.launch({ headless: false });
+    const browser = await firefox.launch({ headless: false });
     const page = await browser.newPage();
 
     await page.setDefaultTimeout(1000000000)
@@ -135,7 +135,10 @@ while (true) {
 
     console.log("Logging in, please wait (processing request is normal).  If the software is stuck logging in please manually log in")
 
-    await page.goto("https://www.koreanair.com/login");
+    await page.goto("https://www.koreanair.com/login?returnUrl=%2F");
+
+    await page.click('button[class="button -rounded -confirm"]');
+
     await page.fill('input[type="text"]', userId);
     await page.fill('input[type="password"]', password);
     await page.click('button[type="submit"]');
@@ -151,6 +154,10 @@ while (true) {
         //await page.click('button[class="ng-star-inserted quickbookings__location _has-dialog -to -off -oneway"]');
         //await page.click('button[class="search-airport__local"]');
         //await page.click('button.local__button:has-text("Seoul/Incheon")');
+        await page.click('button[class="quickbookings__location _has-dialog -from ng-star-inserted"]');
+        await page.click('button[class="search-airport__local"]');
+        await page.locator('button.tab__button').filter({ hasText: 'Americas'}).click();
+        await page.locator('button.local__button').filter({ hasText: 'New York/John F. Kennedy, NY' }).click();
 
         await page.click('button[class="quickbookings__location _has-dialog -to -off ng-star-inserted -oneway"]');
         await page.click('button[class="search-airport__local"]');
@@ -169,7 +176,7 @@ while (true) {
 
         await page.click('button[class="quickbookings__location _has-dialog -to -off ng-star-inserted -oneway"]');
         await page.click('button[class="search-airport__local"]');
-        await page.click('button[id="tab-local-1"]');
+        await page.locator('button.tab__button').filter({ hasText: 'Americas'}).click();
         await page.locator('button.local__button').filter({ hasText: 'New York/John F. Kennedy, NY' }).click();
     }
 
@@ -184,7 +191,7 @@ while (true) {
         console.log("date Picker clicked");
         
         for(let i=1; i<=6; i++) {
-            await page.click('button[class="datepicker__next ng-tns-c42-2"]');
+            await page.click('button[class="datepicker__next ng-tns-c43-2"]'); // class="datepicker__next ng-tns-c43-2"
             console.log("selected date: ", i);
         }
         console.log("out of the loop");
